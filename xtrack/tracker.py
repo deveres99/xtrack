@@ -1509,10 +1509,10 @@ class Tracker:
         self.record_last_track = monitor
 
         if time:
-            t1 = _time.time()
-            print(f't1 = {t1}')
             self._context.synchronize() # Seems not to work on cupy
-            print(particles._xobject.at_turn[0]) # to force synchronization (TODO: find a better way)
+            t1 = _time.time()
+            #print(f't1 = {t1}')
+            #print(particles._xobject.at_turn[0]) # to force synchronization (TODO: find a better way)
             self.time_last_track = t1 - t0
         else:
             self.time_last_track = None
