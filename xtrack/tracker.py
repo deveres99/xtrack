@@ -1509,7 +1509,8 @@ class Tracker:
 
         if time:
             t1 = perf_counter()
-            self._context.synchronize()
+            self._context.synchronize() # Seems not to work on cupy
+            particles._xobject.x[0] # to force synchronization (TODO: find a better way)
             self.time_last_track = t1 - t0
         else:
             self.time_last_track = None
