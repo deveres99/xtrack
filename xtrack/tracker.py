@@ -1335,6 +1335,7 @@ class Tracker:
 
         if time:
             t0 = _time.time()
+            print(f't0 = {t0}')
 
         if freeze_longitudinal:
             kwargs = locals().copy()
@@ -1509,6 +1510,7 @@ class Tracker:
 
         if time:
             t1 = _time.time()
+            print(f't1 = {t1}')
             self._context.synchronize() # Seems not to work on cupy
             particles._xobject.x[0] # to force synchronization (TODO: find a better way)
             self.time_last_track = t1 - t0
