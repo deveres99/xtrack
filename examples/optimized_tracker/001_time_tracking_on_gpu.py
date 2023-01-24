@@ -10,8 +10,10 @@ import xtrack as xt
 import xpart as xp
 import xobjects as xo
 
-num_turns = 10
-num_particles = 30# 100000 # Enough to saturate a high-end GPU
+num_turns = 100
+num_particles = 100000 # Enough to saturate a high-end GPU
+
+context = xo.ContextCupy()
 
 #################################
 # Load a line and build tracker #
@@ -24,7 +26,7 @@ with open(fname_line_particles, 'r') as fid:
 line = xt.Line.from_dict(input_data['line'])
 line.particle_ref = xp.Particles.from_dict(input_data['particle'])
 
-tracker = line.build_tracker()
+tracker = line.build_tracker(_context=context)
 
 ###########################
 # Generate some particles #
