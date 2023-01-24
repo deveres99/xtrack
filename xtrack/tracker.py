@@ -3,7 +3,7 @@
 # Copyright (c) CERN, 2021.                 #
 # ######################################### #
 
-from time import perf_counter
+import time
 from typing import Literal, Union
 import logging
 from functools import partial
@@ -1162,7 +1162,7 @@ class Tracker:
     ):
 
         if time:
-            t0 = perf_counter()
+            t0 = time.time()
 
         if freeze_longitudinal:
             raise NotImplementedError('freeze_longitudinal not implemented yet'
@@ -1316,7 +1316,7 @@ class Tracker:
 
         if time:
             self._context.synchronize()
-            t1 = perf_counter()
+            t1 = time.time()
             self.time_last_track = t1 - t0
         else:
             self.time_last_track = None
@@ -1334,7 +1334,7 @@ class Tracker:
     ):
 
         if time:
-            t0 = perf_counter()
+            t0 = time.time()
 
         if freeze_longitudinal:
             kwargs = locals().copy()
@@ -1508,7 +1508,7 @@ class Tracker:
         self.record_last_track = monitor
 
         if time:
-            t1 = perf_counter()
+            t1 = time.time()
             self._context.synchronize() # Seems not to work on cupy
             particles._xobject.x[0] # to force synchronization (TODO: find a better way)
             self.time_last_track = t1 - t0
