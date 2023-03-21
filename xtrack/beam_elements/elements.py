@@ -899,6 +899,10 @@ class LinearTransferMatrix(BeamElement):
         'disp_x_1': xo.Float64,
         'disp_y_0': xo.Float64,
         'disp_y_1': xo.Float64,
+        'disp_px_0': xo.Float64,
+        'disp_px_1': xo.Float64,
+        'disp_py_0': xo.Float64,
+        'disp_py_1': xo.Float64,
         'beta_s': xo.Float64,
         'energy_ref_increment': xo.Float64,
         'energy_increment': xo.Float64,
@@ -941,6 +945,7 @@ class LinearTransferMatrix(BeamElement):
                      beta_x_0=1.0, beta_x_1=1.0, beta_y_0=1.0, beta_y_1=1.0,
                      alpha_x_0=0.0, alpha_x_1=0.0, alpha_y_0=0.0, alpha_y_1=0.0,
                      disp_x_0=0.0, disp_x_1=0.0, disp_y_0=0.0, disp_y_1=0.0,
+                     disp_px_0=0.0, disp_px_1=0.0, disp_py_0=0.0, disp_py_1=0.0,
                      Q_s=0.0, beta_s=1.0,
                      chroma_x=0.0, chroma_y=0.0,
                      detx_x=0.0, detx_y=0.0, dety_y=0.0, dety_x=0.0,
@@ -1001,6 +1006,10 @@ class LinearTransferMatrix(BeamElement):
         nargs['disp_x_1'] = disp_x_1
         nargs['disp_y_0'] = disp_y_0
         nargs['disp_y_1'] = disp_y_1
+        nargs['disp_px_0'] = disp_px_0
+        nargs['disp_px_1'] = disp_px_1
+        nargs['disp_py_0'] = disp_py_0
+        nargs['disp_py_1'] = disp_py_1
         nargs['beta_s'] = beta_s
         nargs['x_ref_0'] = x_ref_0
         nargs['x_ref_1'] = x_ref_1
