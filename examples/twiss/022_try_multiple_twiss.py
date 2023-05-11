@@ -53,17 +53,20 @@ for on_x1 in on_x1_values:
 # td.element_classes = None
 # td._ElementRefClass = None
 
-input = {'buffer': None, 'tw_kwargs': {}}
-
-# def f_for_pool(input):
-#     buffer = input['buffer']
-#     tw_kwargs = input['tw_kwargs']
-
-#     line.tracker._buffer.buffer = buffer
-#     return line.twiss(**tw_kwargs)
+input = {'buffer': None}
 
 def f_for_pool(input):
-    return 2 * input
+    buffer = input['buffer']
+    tw_kwargs = {}
+
+    line.tracker._buffer.buffer = buffer
+    tw = line.twiss(**tw_kwargs)
+    tw.particle_on_co = None
+    tw = tw._data
+    return tw
+
+# def f_for_pool(input):
+#     return 2 * input
 
 inputs = []
 for buffer in buffers:
@@ -71,26 +74,21 @@ for buffer in buffers:
     iii['buffer'] = buffer
     inputs.append(iii)
 
+tw = line.twiss()
+
 # twisses = map(f_for_pool, inputs)
 if __name__ == '__main__':
-    # import multiprocessing as mp
-    # mp.set_start_method('spawn')
-    # pool = mp.Pool(processes=3)
-    # twisses = pool.map(f_for_pool, [1,2,3])
     import multiprocessing as mp
-    # mp.set_start_method('spawn')
-    q = mp.Queue()
-    p = mp.Process(target=f_for_pool, args=(q,))
-    p.start()
+    mp.set_start_method('spawn')
+    pool = mp.Pool(processes=3)
+    twisses = pool.map(f_for_pool, inputs)
 
-# pool = mp.Pool(processes=3)
-# twisses = pool.map(f_for_pool, [1,2,3])
+    # twisses = []
+    # for bb in buffers:
+    #     line._buffer.buffer = bb
+    #     twisses.append(line.twiss())
 
-# twisses = []
-# for bb in buffers:
-#     line._buffer.buffer = bb
-#     twisses.append(line.twiss())
-
-# for on_x1, tw in zip(on_x1_values, twisses):
-#     print(f'on_x1 = {on_x1}, px["ip1"] = {tw["px", "ip1"]*1e6:f}e-6')
+    for on_x0, twdata in zip(on_x1_values, twisses):
+        tw._data = twdata
+        print(f'on_x0 = {on_x1}, px["ip1"] = {tw["px", "ip1"]*1e6:f}e-6')
 
