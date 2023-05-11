@@ -138,7 +138,8 @@ class MeritFunctionForMatch:
             x_list[-1][ii] += steps[ii]
 
         if self.multiprocessing_pool_size > 0:
-            chunk_size = len(x_list) // self.multiprocessing_pool_size
+            chunk_size = int(
+                np.ceil(len(x_list) / self.multiprocessing_pool_size))
             chunks = []
             for ii in range(self.multiprocessing_pool_size):
                 i_first = ii * chunk_size
@@ -282,7 +283,7 @@ class TargetInequality(Target):
             return val - self.rhs
 
 def match_line(line, vary, targets, restore_if_fail=True, solver=None,
-                  verbose=False, **kwargs):
+                  verbose=False, multiprocessing_pool_size=0,  **kwargs):
 
     if 'twiss_init' in kwargs and kwargs['twiss_init'] is not None:
         twinit = kwargs['twiss_init']
@@ -412,7 +413,8 @@ def match_line(line, vary, targets, restore_if_fail=True, solver=None,
 
     _err = MeritFunctionForMatch(vary=vary, targets=targets, line=line,
                 return_scalar=return_scalar, call_counter=0, verbose=verbose,
-                tw_kwargs=kwargs, steps_for_jacobian=steps)
+                tw_kwargs=kwargs, steps_for_jacobian=steps,
+                multiprocessing_pool_size=multiprocessing_pool_size,)
 
     knob_limits = np.array(knob_limits)
     x_lim_low = _err._knobs_to_x(np.squeeze(knob_limits[:, 0]))
