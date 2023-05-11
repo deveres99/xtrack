@@ -156,16 +156,13 @@ class MeritFunctionForMatch:
         else:
             chunks = [x_list]
 
-        def eval_chunk(chunk):
-            res = []
-            for xx in chunk:
-                res.append(self(xx))
-            return res
+
 
         if self.multiprocessing_pool_size == 0:
-            res_chunks = list(map(eval_chunk, chunks))
+            res_chunks = list(map()) # TODO
         else:
-            res_chunks = list(self.pool.map(eval_chunk, chunks))
+            res_chunks = list(self.pool.map(eval_chunk,
+                                  [(self, cc) for cc in chunks]))
 
         res = []
         for res_chunk in res_chunks:
@@ -177,6 +174,12 @@ class MeritFunctionForMatch:
             jac[:, ii] = (res[ii + 1] - f0) / steps[ii]
 
         return jac
+
+def eval_chunk(err, chunk):
+    res = []
+    for xx in chunk:
+        res.append(err(xx))
+    return res
 
 class TargetList:
     def __init__(self, tars, **kwargs):
