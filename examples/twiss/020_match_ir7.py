@@ -78,6 +78,7 @@ for i_repeat in range(1):
 
     t_start = time.perf_counter()
     match_res = collider.match(
+        multiprocessing_pool_size=3,
         # verbose=True,
         ele_start=ele_start_match,
         ele_stop=ele_end_match,

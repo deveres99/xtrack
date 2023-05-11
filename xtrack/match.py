@@ -165,7 +165,7 @@ class MeritFunctionForMatch:
         if self.multiprocessing_pool_size == 0:
             res_chunks = list(map(eval_chunk, chunks))
         else:
-            res_chunks = list(self.pool,map(eval_chunk, chunks))
+            res_chunks = list(self.pool.map(eval_chunk, chunks))
 
         res = []
         for res_chunk in res_chunks:
