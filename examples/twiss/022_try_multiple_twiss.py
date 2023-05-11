@@ -44,7 +44,7 @@ if __name__ == '__main__':
         _initial_particles=ttt._initial_particles
             )
 
-    on_x1_values = np.linspace(50, 150, 20)
+    on_x1_values = np.linspace(50, 150, 16)
     buffers = []
     for on_x1 in on_x1_values:
         line.vars['on_x1'] = on_x1
@@ -57,13 +57,14 @@ if __name__ == '__main__':
         buffer = input['buffer']
         tw_kwargs = {}
 
-        tw = {'px':{17401: 33}}
-        for ii in range(1000):
-            tw['px'][17401] += np.mean(buffer)
-        # line.tracker._buffer.buffer = buffer
-        # tw = line.twiss(**tw_kwargs)
-        # tw.particle_on_co = None
-        # tw = tw._data
+        line.tracker._buffer.buffer = buffer
+        tw = line.twiss(**tw_kwargs)
+        tw.particle_on_co = None
+        tw = tw._data
+
+        # for ii in range(1000):
+        #     tw['px'][17401] += np.mean(buffer)
+
         return tw
 
     inputs = []
@@ -86,7 +87,7 @@ if __name__ == '__main__':
     print(f'Elapsed time serial: {t2-t1} s')
 
 
-    pool = mp.Pool(processes=3)
+    pool = mp.Pool(processes=4)
     t1 = time.perf_counter()
     print('Start parallel')
     twisses_parallel = pool.map(f_for_pool, inputs)
