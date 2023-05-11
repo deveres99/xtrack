@@ -2399,8 +2399,8 @@ class Line:
     def _check_valid_tracker(self):
         if not self._has_valid_tracker():
             raise RuntimeError(
-                "This tracker is not anymore valid, most probably because the corresponding line has been unfrozen. "
-                "Please rebuild the tracker, for example using `line.build_tracker(...)`.")
+                "This line has no valid tracker. "
+                "Please build the tracker, for example using `line.build_tracker(...)`.")
 
     @property
     def iscollective(self):
