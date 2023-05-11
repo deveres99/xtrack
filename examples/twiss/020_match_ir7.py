@@ -78,7 +78,7 @@ if __name__ == '__main__':
 
         t_start = time.perf_counter()
         match_res = collider.match(
-            multiprocessing_pool_size=3,
+            # multiprocessing_pool_size=3,
             # verbose=True,
             ele_start=ele_start_match,
             ele_stop=ele_end_match,

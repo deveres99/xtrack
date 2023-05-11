@@ -158,7 +158,7 @@ class MeritFunctionForMatch:
             chunks = [x_list]
 
         if self.multiprocessing_pool_size == 0:
-            res_chunks = list(map()) # TODO
+            res_chunks = list(map(eval_chunk, [(chunk, self) for chunk in chunks]))
         else:
             # self._line.tracker.
             res_chunks = list(self.pool.map(eval_chunk,
