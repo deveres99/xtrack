@@ -38,7 +38,10 @@ class OrbitOnly:
 class MeritFunctionForMatch:
 
     def __init__(self, vary, targets, line, return_scalar,
-                 call_counter, verbose, tw_kwargs, steps_for_jacobian):
+                 call_counter, verbose, tw_kwargs, steps_for_jacobian,
+                 multiprocessing_pool_size=0):
+
+        assert multiprocessing_pool_size >= 0
 
         self.vary = vary
         self.targets = targets
@@ -48,6 +51,7 @@ class MeritFunctionForMatch:
         self.verbose = verbose
         self.tw_kwargs = tw_kwargs
         self.steps_for_jacobian = steps_for_jacobian
+        self.multiprocessing_pool_size = multiprocessing_pool_size
 
     def _x_to_knobs(self, x):
         knob_values = np.array(x).copy()
@@ -127,15 +131,45 @@ class MeritFunctionForMatch:
         x = np.array(x).copy()
         steps = self._knobs_to_x(self.steps_for_jacobian)
         assert len(x) == len(steps)
-        f0 = self(x)
-        if np.isscalar(f0):
-            jac = np.zeros((1, len(x)))
-        else:
-            jac = np.zeros((len(f0), len(x)))
+
+        x_list = [x]
         for ii in range(len(x)):
-            x[ii] += steps[ii]
-            jac[:, ii] = (self(x) - f0) / steps[ii]
-            x[ii] -= steps[ii]
+            x_list.append(x.copy())
+            x_list[-1][ii] += steps[ii]
+
+        if self.multiprocessing_pool_size > 0:
+            chunk_size = len(x_list) // self.multiprocessing_pool_size
+            chunks = []
+            for ii in range(self.multiprocessing_pool_size):
+                i_first = ii * chunk_size
+                i_last = (ii + 1) * chunk_size
+                if i_last > len(x_list):
+                    i_last = len(x_list)
+                if i_last>i_first:
+                    chunks.append(x_list[i_first:i_last])
+        else:
+            chunks = [x_list]
+
+        def eval_chunk(chunk):
+            res = []
+            for xx in chunk:
+                res.append(self(xx))
+            return res
+
+        if self.multiprocessing_pool_size == 0:
+            res_chunks = list(map(eval_chunk, chunks))
+        else:
+            res_chunks = list(map(eval_chunk, chunks)) # to be replaced by multiprocessing
+
+        res = []
+        for res_chunk in res_chunks:
+            res += res_chunk
+
+        f0 = res[0]
+        jac = np.zeros((len(f0), len(x)))
+        for ii in range(len(x)):
+            jac[:, ii] = (res[ii + 1] - f0) / steps[ii]
+
         return jac
 
 class TargetList:
