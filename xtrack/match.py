@@ -1,4 +1,5 @@
 from functools import partial
+import dateutil
 
 import numpy as np
 from scipy.optimize import fsolve, minimize
@@ -159,14 +160,9 @@ class MeritFunctionForMatch:
         if self.multiprocessing_pool_size == 0:
             res_chunks = list(map()) # TODO
         else:
-            def eval_chunk(chunk):
-                res = []
-                for xx in chunk:
-                    res.append(xx)
-                return res
-            res_chunks = list(self.pool.map(
-                lambda chunk: [self(xx) for xx in chunk], chunks))
-        prrrr
+            # self._line.tracker.
+            res_chunks = list(self.pool.map(eval_chunk,
+                [(chunk, self) for chunk in chunks]))
 
         res = []
         for res_chunk in res_chunks:
@@ -179,7 +175,8 @@ class MeritFunctionForMatch:
 
         return jac
 
-def eval_chunk(err, chunk):
+def eval_chunk(input):
+    chunk, err = input
     res = []
     for xx in chunk:
         res.append(err(xx))

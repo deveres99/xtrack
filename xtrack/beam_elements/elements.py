@@ -56,7 +56,6 @@ class Marker(BeamElement):
     def get_backtrack_element(self, _context=None, _buffer=None, _offset=None):
         return self.__class__(_context=_context, _buffer=_buffer, _offset=_offset)
 
-
 class Drift(BeamElement):
     '''Beam element modeling a drift section.
 
