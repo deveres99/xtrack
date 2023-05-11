@@ -1315,6 +1315,8 @@ class TrackerConfig(UserDict):
             del(self.data[idx])
 
     def __getattr__(self, idx):
+        if idx == 'data':
+            return object.__getattribute__(self, idx)
         if idx in self.data:
             return self.data[idx]
         else:

@@ -2574,7 +2574,9 @@ class Line:
 
             return out
 
-mathfunctions = type('math', (), {})
+class mathfun:
+    pass
+mathfunctions = mathfun
 mathfunctions.sqrt = math.sqrt
 mathfunctions.log = math.log
 mathfunctions.log10 = math.log10
