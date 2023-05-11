@@ -44,7 +44,7 @@ if __name__ == '__main__':
         _initial_particles=ttt._initial_particles
             )
 
-    on_x1_values = [50, 100, 150]
+    on_x1_values = np.linspace(50, 150, 20)
     buffers = []
     for on_x1 in on_x1_values:
         line.vars['on_x1'] = on_x1
@@ -57,13 +57,13 @@ if __name__ == '__main__':
         buffer = input['buffer']
         tw_kwargs = {}
 
-        tw = 0
-        # for ii in range(1000):
-        #     tw += np.mean(buffer)
-        line.tracker._buffer.buffer = buffer
-        tw = line.twiss(**tw_kwargs)
-        tw.particle_on_co = None
-        tw = tw._data
+        tw = {'px':{17401: 33}}
+        for ii in range(1000):
+            tw['px'][17401] += np.mean(buffer)
+        # line.tracker._buffer.buffer = buffer
+        # tw = line.twiss(**tw_kwargs)
+        # tw.particle_on_co = None
+        # tw = tw._data
         return tw
 
     inputs = []
@@ -75,11 +75,12 @@ if __name__ == '__main__':
     tw = line.twiss()
 
     t1 = time.perf_counter()
-    twisses = map(f_for_pool, inputs)
+    print('Start serial')
+    twisses_serial = list(map(f_for_pool, inputs))
+    print('End serial')
+    print(twisses_serial[1]['px'][17401])
 
-    # for on_x0, twdata in zip(on_x1_values, twisses):
-    #     tw._data = twdata
-    #     print(f'on_x0 = {on_x1}, px["ip1"] = {tw["px", "ip1"]*1e6:f}e-6')
+
 
     t2 = time.perf_counter()
     print(f'Elapsed time serial: {t2-t1} s')
@@ -87,16 +88,24 @@ if __name__ == '__main__':
 
     pool = mp.Pool(processes=3)
     t1 = time.perf_counter()
-    twisses = pool.map(f_for_pool, inputs)
-
-    # for on_x0, twdata in zip(on_x1_values, twisses):
-    #     tw._data = twdata
-    #     print(f'on_x0 = {on_x1}, px["ip1"] = {tw["px", "ip1"]*1e6:f}e-6')
+    print('Start parallel')
+    twisses_parallel = pool.map(f_for_pool, inputs)
+    print('End parallel')
+    print(twisses_parallel[1]['px'][17401])
 
     t2 = time.perf_counter()
     print(f'Elapsed time parallel: {t2-t1} s')
 
 
+    print('Result serial:')
+    for on_x1, twdata in zip(on_x1_values, twisses_serial):
+        tw._data = twdata
+        print(f'on_x0 = {on_x1}, px["ip1"] = {tw["px", "ip1"]*1e6:f}e-6')
+
+    print('Result parallel:')
+    for on_x1, twdata in zip(on_x1_values, twisses_parallel):
+        tw._data = twdata
+        print(f'on_x0 = {on_x1}, px["ip1"] = {tw["px", "ip1"]*1e6:f}e-6')
 
 
 
