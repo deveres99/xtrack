@@ -1,6 +1,8 @@
 import time
 import multiprocessing as mp
 
+import numpy as np
+
 import xtrack as xt
 import xpart as xp
 
@@ -55,10 +57,13 @@ if __name__ == '__main__':
         buffer = input['buffer']
         tw_kwargs = {}
 
-        line.tracker._buffer.buffer = buffer
-        tw = line.twiss(**tw_kwargs)
-        tw.particle_on_co = None
-        tw = tw._data
+        tw = 0
+        for ii in range(1000):
+            tw += np.mean(buffer)
+        # line.tracker._buffer.buffer = buffer
+        # tw = line.twiss(**tw_kwargs)
+        # tw.particle_on_co = None
+        # tw = tw._data
         return tw
 
     inputs = []
@@ -72,9 +77,9 @@ if __name__ == '__main__':
     t1 = time.perf_counter()
     twisses = map(f_for_pool, inputs)
 
-    for on_x0, twdata in zip(on_x1_values, twisses):
-        tw._data = twdata
-        print(f'on_x0 = {on_x1}, px["ip1"] = {tw["px", "ip1"]*1e6:f}e-6')
+    # for on_x0, twdata in zip(on_x1_values, twisses):
+    #     tw._data = twdata
+    #     print(f'on_x0 = {on_x1}, px["ip1"] = {tw["px", "ip1"]*1e6:f}e-6')
 
     t2 = time.perf_counter()
     print(f'Elapsed time serial: {t2-t1} s')
@@ -84,9 +89,9 @@ if __name__ == '__main__':
     t1 = time.perf_counter()
     twisses = pool.map(f_for_pool, inputs)
 
-    for on_x0, twdata in zip(on_x1_values, twisses):
-        tw._data = twdata
-        print(f'on_x0 = {on_x1}, px["ip1"] = {tw["px", "ip1"]*1e6:f}e-6')
+    # for on_x0, twdata in zip(on_x1_values, twisses):
+    #     tw._data = twdata
+    #     print(f'on_x0 = {on_x1}, px["ip1"] = {tw["px", "ip1"]*1e6:f}e-6')
 
     t2 = time.perf_counter()
     print(f'Elapsed time parallel: {t2-t1} s')
