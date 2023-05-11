@@ -7,6 +7,8 @@ from .jacobian import JacobianSolver
 from .twiss import TwissInit
 from .general import _print
 import xtrack as xt
+import multiprocessing as mp
+
 
 DEFAULT_WEIGHTS = {
     # For quantities not specified here the default weight is 1
@@ -52,6 +54,9 @@ class MeritFunctionForMatch:
         self.tw_kwargs = tw_kwargs
         self.steps_for_jacobian = steps_for_jacobian
         self.multiprocessing_pool_size = multiprocessing_pool_size
+
+        if self.multiprocessing_pool_size > 0:
+            self.pool = mp.Pool(processes=self.multiprocessing_pool_size)
 
     def _x_to_knobs(self, x):
         knob_values = np.array(x).copy()
@@ -160,7 +165,7 @@ class MeritFunctionForMatch:
         if self.multiprocessing_pool_size == 0:
             res_chunks = list(map(eval_chunk, chunks))
         else:
-            res_chunks = list(map(eval_chunk, chunks)) # to be replaced by multiprocessing
+            res_chunks = list(self.pool,map(eval_chunk, chunks))
 
         res = []
         for res_chunk in res_chunks:
