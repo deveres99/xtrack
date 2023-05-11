@@ -58,12 +58,12 @@ if __name__ == '__main__':
         tw_kwargs = {}
 
         tw = 0
-        for ii in range(1000):
-            tw += np.mean(buffer)
-        # line.tracker._buffer.buffer = buffer
-        # tw = line.twiss(**tw_kwargs)
-        # tw.particle_on_co = None
-        # tw = tw._data
+        # for ii in range(1000):
+        #     tw += np.mean(buffer)
+        line.tracker._buffer.buffer = buffer
+        tw = line.twiss(**tw_kwargs)
+        tw.particle_on_co = None
+        tw = tw._data
         return tw
 
     inputs = []
