@@ -31,7 +31,6 @@ ttt = collider.twiss(
     _keep_tracking_data=True,
     )
 
-line._kill_twiss = False
 
 n_repeat = 1000
 t1 = time.perf_counter()
@@ -48,19 +47,12 @@ t2 = time.perf_counter()
 
 print(f'Average time: {(t2-t1)/n_repeat*1e3} ms')
 
-line._kill_twiss = True
-
 n_repeat = 1000
 t1 = time.perf_counter()
 for repeat in range(n_repeat):
-    tw = collider.twiss(
-        #verbose=True,
-        ele_start=[ele_index_start],
-        ele_stop=[ele_index_end],
-        twiss_init=tw_init,
-        _ebe_monitor=[ttt.lhcb1.tracking_data],
-        _initial_particles=[ttt.lhcb1._initial_particles]
-        )
+    monitor = collider.lhcb1.tracker._get_monitor(
+        particles=ttt.lhcb1._initial_particles,
+        turn_by_turn_monitor='ONE_TURN_EBE',
+        num_turns=1)[1]
 t2 = time.perf_counter()
-
-print(f'Average time (with kill): {(t2-t1)/n_repeat*1e3} ms')
+print(f'Average time monitor creation: {(t2-t1)/n_repeat*1e3} ms')

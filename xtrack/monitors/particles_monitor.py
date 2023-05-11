@@ -94,13 +94,13 @@ def _monitor_init(
             data=data_init,
         )
 
-        self._dressed_data = self._ParticlesClass(_xobject=self._xobject.data,
-                                                  _no_reorganize=True)
-        self.auto_to_numpy = auto_to_numpy
+    self._dressed_data = self._ParticlesClass(_xobject=self._xobject.data,
+                                                _no_reorganize=True)
+    self.auto_to_numpy = auto_to_numpy
 
-        with self.data._bypass_linked_vars():
-            for tt, nn in self._ParticlesClass.per_particle_vars:
-                getattr(self.data, nn)[:] = 0
+    # with self.data._bypass_linked_vars():
+    #     for tt, nn in self._ParticlesClass.per_particle_vars:
+    #         getattr(self.data, nn)[:] = 0
 
 class _FieldOfMonitor:
     def __init__(self, name):

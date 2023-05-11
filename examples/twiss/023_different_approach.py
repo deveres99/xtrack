@@ -44,62 +44,35 @@ if __name__ == '__main__':
         _initial_particles=ttt._initial_particles
             )
 
-    on_x1_values = np.linspace(50, 150, 16)
-    buffers = []
-    for on_x1 in on_x1_values:
-        line.vars['on_x1'] = on_x1
-        buffers.append(line.tracker._buffer.buffer.copy())
+    on_x1_values = np.linspace(50, 150, 18)
 
     init_part = ttt._initial_particles
+    ebe_monitor = ttt.tracking_data
 
-    # tr_data_xobject = ttt.tracking_data._xobject
-    # init_part_xobject = ttt._initial_particles._xobject
-    # pref_xobject = line.particle_ref._xobject
+    n_proc = 3
 
-    # dummy_tracker = xt.Tracker(line=xt.Line())
-    # dummy_tracker._track_kernel = None
-    # dummy_tracker._tracker_data.__dict__.clear()
-    # dummy_tracker._tracker_data._element_ref_data = XobjectPointer(
-    #     line.tracker._tracker_data._element_ref_data)
-    # dummy_tracker._track_kernel = line.tracker._track_kernel
-    # dummy_tracker._tracker_data.line_length = line.tracker._tracker_data.line_length
-
-    # dummy_tracker.record_last_track = None
-
-    # element_names = line.element_names
-
-    input = {'buffer': None}
+    # slice on_x1_values in n_proc chunks
+    inputs = []
+    for i_proc in range(n_proc):
+        inputs.append(on_x1_values[i_proc::n_proc])
 
     def f_for_pool(input):
-        buffer = input['buffer']
 
-        # line_internal = xt.Line()
-        # line_internal.particle_ref = xp.Particles(_xobject=pref_xobject)
-        # line_internal.tracker = dummy_tracker
-        # line_internal.element_names = element_names
-        # line_internal.tracker.line = line_internal
+        tw_chunk = []
+        for on_x1 in input:
+            line.vars['on_x1'] = on_x1
 
-        line.tracker._tracker_data._buffer.buffer = buffer
-        tw = line.twiss(
-             ele_start=ele_index_start,
-             ele_stop=ele_index_end,
-             twiss_init=tw_init,
-             _ebe_monitor='ONE_TURN_EBE',
-             _initial_particles=init_part
-             # _ebe_monitor=ttt.tracking_data,
-            # _initial_particles=ttt._initial_particles,
-            )
-        tw.particle_on_co = None
-        # res = {'name': tw.name, 'px': tw.px}
-        # res= {'name': 'ip1', 'px': [0.]}
+            tw = line.twiss(
+                ele_start=ele_index_start,
+                ele_stop=ele_index_end,
+                twiss_init=tw_init,
+                _initial_particles=init_part,
+                _ebe_monitor=ebe_monitor
+                )
+            tw.particle_on_co = None
+            tw_chunk.append(tw._data)
 
-        return tw._data
-
-    inputs = []
-    for buffer in buffers:
-        iii = input.copy()
-        iii['buffer'] = buffer
-        inputs.append(iii)
+        return tw_chunk
 
     ip1_index = list(tw.name).index('ip1')
 
@@ -108,19 +81,29 @@ if __name__ == '__main__':
     t1 = time.perf_counter()
     print('Start serial')
     for i in range(n_repeat):
-        twisses_serial = list(map(f_for_pool, inputs))
-        # print(twisses_serial[1]['px'][ip1_index])
+        tw_chunks_serial = list(map(f_for_pool, inputs))
     print('End serial')
+
+    # Remerge chunks
+    twisses_serial = []
+    for i in range(len(tw_chunks_serial)):
+        twisses_serial += tw_chunks_serial[i]
+
     t2 = time.perf_counter()
     print(f'Elapsed time serial: {t2-t1} s')
 
 
-    pool = mp.Pool(processes=2)
+    pool = mp.Pool(processes=n_proc)
     t1 = time.perf_counter()
     print('Start parallel')
     for i in range(n_repeat):
-        twisses_parallel = pool.map(f_for_pool, inputs)
-        # print(twisses_parallel[1]['px'][ip1_index])
+        tw_chunks_parallel = pool.map(f_for_pool, inputs)
+
+    # Remerge chunks
+    twisses_parallel = []
+    for i in range(len(tw_chunks_parallel)):
+        twisses_parallel += tw_chunks_parallel[i]
+
     print('End parallel')
 
     t2 = time.perf_counter()
