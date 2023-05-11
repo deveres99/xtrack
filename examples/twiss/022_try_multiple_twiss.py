@@ -48,12 +48,6 @@ if __name__ == '__main__':
         line.vars['on_x1'] = on_x1
         buffers.append(line.tracker._buffer.buffer.copy())
 
-    # td = line.tracker._tracker_data
-    # td._element_ref_data = XobjectPointer(td._element_ref_data)
-    # td._element_dict = None
-    # td._elements = None
-    # td.element_classes = None
-    # td._ElementRefClass = None
 
     input = {'buffer': None}
 
@@ -67,9 +61,6 @@ if __name__ == '__main__':
         tw = tw._data
         return tw
 
-    # def f_for_pool(input):
-    #     return 2 * input
-
     inputs = []
     for buffer in buffers:
         iii = input.copy()
@@ -78,16 +69,36 @@ if __name__ == '__main__':
 
     tw = line.twiss()
 
-    # twisses = map(f_for_pool, inputs)
-    pool = mp.Pool(processes=3)
-    twisses = pool.map(f_for_pool, inputs)
-
-    # twisses = []
-    # for bb in buffers:
-    #     line._buffer.buffer = bb
-    #     twisses.append(line.twiss())
+    t1 = time.perf_counter()
+    twisses = map(f_for_pool, inputs)
 
     for on_x0, twdata in zip(on_x1_values, twisses):
         tw._data = twdata
         print(f'on_x0 = {on_x1}, px["ip1"] = {tw["px", "ip1"]*1e6:f}e-6')
 
+    t2 = time.perf_counter()
+    print(f'Elapsed time serial: {t2-t1} s')
+
+
+    pool = mp.Pool(processes=3)
+    t1 = time.perf_counter()
+    twisses = pool.map(f_for_pool, inputs)
+
+    for on_x0, twdata in zip(on_x1_values, twisses):
+        tw._data = twdata
+        print(f'on_x0 = {on_x1}, px["ip1"] = {tw["px", "ip1"]*1e6:f}e-6')
+
+    t2 = time.perf_counter()
+    print(f'Elapsed time parallel: {t2-t1} s')
+
+
+
+
+
+
+    # td = line.tracker._tracker_data
+    # td._element_ref_data = XobjectPointer(td._element_ref_data)
+    # td._element_dict = None
+    # td._elements = None
+    # td.element_classes = None
+    # td._ElementRefClass = None
