@@ -29,9 +29,6 @@ ttt = line.twiss(
     _keep_tracking_data=True,
     )
 
-line._kill_twiss = False
-
-
 tw = line.twiss(
     #verbose=True,
     ele_start=ele_index_start,
@@ -41,3 +38,16 @@ tw = line.twiss(
     _initial_particles=ttt._initial_particles
         )
 
+on_x1_values = [50, 100, 150]
+buffers = []
+for on_x1 in on_x1_values:
+    line.vars['on_x1'] = on_x1
+    buffers.append(line.tracker._buffer.buffer.copy())
+
+twisses = []
+for bb in buffers:
+    line._buffer.buffer = bb
+    twisses.append(line.twiss())
+
+for on_x1, tw in zip(on_x1_values, twisses):
+    print(f'on_x1 = {on_x1}, px["ip1"] = {tw["px", "ip1"]*1e6:f}e-6')
