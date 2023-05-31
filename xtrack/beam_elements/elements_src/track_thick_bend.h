@@ -24,48 +24,36 @@ void track_thick_bend(
     const double px = LocalParticle_get_px(part);
     const double py = LocalParticle_get_py(part);
     const double ell = LocalParticle_get_zeta(part) / rvv;
+    const double pt = LocalParticle_get_ptau(part);
+    const double beta0 = LocalParticle_get_beta0(part);
+    const double t = LocalParticle_get_zeta(part) / beta0;
     const double s = length;
 
     double new_x, new_px, new_y, new_ell;
 
-    // Useful constants
-    const double one_plus_delta = LocalParticle_get_delta(part) + 1.0;
-    const double A = 1.0 / sqrt(POW2(one_plus_delta) - POW2(py));
-    const double B = sqrt(POW2(one_plus_delta) - POW2(px) - POW2(py));
+    const double rho = 1 / h;
+    const double ang = length / rho;
+    const double sa = sin(ang);
+    const double ca = cos(ang);
 
-    if (NONZERO(h)) {
-        // The case for non-zero curvature, s is arc length
-
-        // Useful constants
-        const double C = B - k * ((1 / h) + x);
-        const double d_new_px_ds = C * h * cos(h * s) - h * px * sin(h * s);
-
-        // Update particle coordinates
-        new_x = (B * h - d_new_px_ds - k)/(h*k);
-        new_px = px * cos(s * h) + C * sin(s * h);
-
-        const double D = asin(A * px) - asin(A * new_px);
-        new_y = y + ((py * s) / (k / h)) + (py / k) * D;
-
-        new_ell = ell + ((one_plus_delta * s * h) / k) + (one_plus_delta / k) * D;
-    }
-    else {
-        // The case for zero curvature -- straight bend, s is Cartesian length
-
-        new_px = px - k * s;
-        new_x = x + (sqrt(POW2(one_plus_delta) - POW2(new_px) - POW2(py)) - B) / k;
-
-        const double D = asin(A * px) - asin(A * new_px);
-        new_y = y + (py / k) * D;
-
-        new_ell = ell + (one_plus_delta / k) * D;
-    }
+    const double pw2 = 1 + 2*pt/beta0 + POW2(pt) - POW2(py);
+    const double pz = sqrt(pw2 - POW2(px));
+    const double pzx = pz - k*(rho+x);
+    const double npx = sa*pzx + ca*px;
+    const double dpx = ca*pzx - sa*px;
+    const double pzs = sqrt(pw2 - POW2(npx));
+    const double _ptt = 1.0 / sqrt(pw2);
+    const double dxs = (ang + asin(px*_ptt) - asin(npx*_ptt))/k;
+    new_x = (pzs - dpx)/k - rho;
+    new_px = npx;
+    new_y = y + dxs*py;
+    // new_t = 0;//t - dxs*(1/beta+pt) + (1-T)*(ld/beta)
 
     // Update Particles object
     LocalParticle_set_x(part, new_x);
     LocalParticle_set_px(part, new_px);
     LocalParticle_set_y(part, new_y);
-    LocalParticle_set_zeta(part, new_ell * rvv);
+    //LocalParticle_set_zeta(part, new_ell * rvv);
     LocalParticle_add_to_s(part, s);
 }
 
