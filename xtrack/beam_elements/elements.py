@@ -228,7 +228,12 @@ class Henonmap(BeamElement):
 
 
 class Extractioncheck(BeamElement):
-    '''Beam element representing extraction.
+    '''Beam element representing extraction. To be used with e.g. Henon map, 
+    where exact location of extraction is not accessible, so it is assumed 
+    that particles at the location of the Extractioncheck element that have 
+    coordinates within a desired region of phase space will be extracted. 
+    The particle states will be set to -1000 if they satisfy the extraction 
+    condition.
 
     Parameters
     ----------
