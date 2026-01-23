@@ -9,6 +9,16 @@
 #include "xtrack/headers/track.h"
 
 GPUFUN
+float T_Chebyshev(int n, float u){
+  return (n * acos(u));
+}
+
+GPUFUN
+float T_prime_Chebyshev(int n, float u){
+  return n * sin(n * acos(u)) / sqrt(1 - pow((double)u, (double)2));
+}
+
+GPUFUN
 void Elens_track_local_particle(ElensData el, LocalParticle* part0){
 
     double elens_length = ElensData_get_elens_length(el);
@@ -16,6 +26,8 @@ void Elens_track_local_particle(ElensData el, LocalParticle* part0){
     if (LocalParticle_check_track_flag(part0, XS_FLAG_BACKTRACK)) {
         elens_length = -elens_length;
     }
+
+    int const elens_on = ElensData_get_elens_on(el);
 
     double const inner_radius = ElensData_get_inner_radius(el);
     double const outer_radius = ElensData_get_outer_radius(el);
@@ -26,8 +38,16 @@ void Elens_track_local_particle(ElensData el, LocalParticle* part0){
 
     int const polynomial_order = ElensData_get_polynomial_order(el);
 
-    GPUGLMEM double const* coefficients_polynomial =
-                                ElensData_getp1_coefficients_polynomial(el, 0);
+    int const e_beam_dir = ElensData_get_e_beam_dir(el);
+
+    GPUGLMEM double const* polynomial_coefficients =
+                                ElensData_getp1_polynomial_coefficients(el, 0);
+
+    int const chebyshev_max_order = ElensData_get_chebyshev_max_order(el);
+    float const chebyshev_reference_radius = ElensData_get_chebyshev_reference_radius(el);
+
+    GPUGLMEM double const* chebyshev_coefficients =
+                                ElensData_getp1_chebyshev_coefficients(el, 0);
 
     START_PER_PARTICLE_BLOCK(part0, part);
         // electron mass
@@ -94,26 +114,33 @@ void Elens_track_local_particle(ElensData el, LocalParticle* part0){
         {
           // frr = ((r*r - r1*r1)/(r2*r2 - r1*r1));
           if (polynomial_order ==0)
-            {
-              frr = ((r*r - r1*r1)/(r2*r2 - r1*r1));
-            }
+          {
+            frr = ((r*r - r1*r1)/(r2*r2 - r1*r1));
+          }
           else
-            {
-              frr = 0;
-              for(int i=0; i<(polynomial_order+1); ++i){
-                frr += coefficients_polynomial[i]*pow((double)(r*1e3), (double)(polynomial_order-i));
+          {
+            frr = 0;
+            for(int i=0; i<(polynomial_order+1); ++i){
+              frr += polynomial_coefficients[i]*(
+                pow((double)r, (double)(i+2)) - pow((double)r1, (double)(i+2))
+              ) / (i+2);
             }
+          }
 
-            }
         }
+        
 
         // # calculate the kick at r2 (maximum kick)
         double theta_max = ((1.0/(4.0*PI*EPSILON_0)));
         theta_max = theta_max*(2*elens_length*current);
 
-        // for the moment: e-beam in the opposite direction from proton beam
-        // generalize later
-        theta_max = theta_max*(1+beta_e*beta_p);
+        // theta_max depens on direction of e beam
+        if (e_beam_dir < 0){
+          theta_max = theta_max*(1+beta_e*beta_p);
+        }
+        else {
+          theta_max = theta_max*(1-beta_e*beta_p);
+        }
 
         theta_max = theta_max/(outer_radius*Brho0*beta_e*beta_p);
         theta_max = theta_max/(C_LIGHT*C_LIGHT);
@@ -139,10 +166,33 @@ void Elens_track_local_particle(ElensData el, LocalParticle* part0){
         {
           // if the particle is not inside the e-beam, it will only
           // be subject to the residual kick
-          dpx = residual_kick_x;
-          dpy = residual_kick_y;
+          if (chebyshev_max_order == 0) {
+            dpx = residual_kick_x;
+            dpy = residual_kick_y;
+          }
+          else {
+            // Use Chebychev polynomials to evaluate non-linear residual kick 
+            // https://lss.fnal.gov/archive/test-fn/0000/fermilab-fn-0972-apc.pdf
+
+            double ux = x / chebyshev_reference_radius;
+            double uy = y / chebyshev_reference_radius;
+
+            int coeff_num = 0;
+            for (int n=0; n<(chebyshev_max_order+1); ++n){
+              for (int m=0; m<(n+1); ++m){
+                dpx += chebyshev_coefficients[coeff_num] * T_prime_Chebyshev(m, ux) * T_Chebyshev(n-m, uy);
+                dpy += chebyshev_coefficients[coeff_num] * T_Chebyshev(m, ux) * T_prime_Chebyshev(n-m, uy);
+                coeff_num += 1;
+              }
+            }
+            
+            dpx *= -1 / (beta_p * C_LIGHT * Brho0 * chebyshev_reference_radius);
+            dpy *= -1 / (beta_p * C_LIGHT * Brho0 * chebyshev_reference_radius);
+          }
         }
 
+        dpx *= elens_on;
+        dpy *= elens_on;
 
         LocalParticle_add_to_px(part, dpx );
         LocalParticle_add_to_py(part, dpy );
