@@ -31,6 +31,8 @@ void Elens_track_local_particle(ElensData el, LocalParticle* part0){
 
     double const inner_radius = ElensData_get_inner_radius(el);
     double const outer_radius = ElensData_get_outer_radius(el);
+    double const offset_x = ElensData_get_offset_x(el);
+    double const offset_y = ElensData_get_offset_y(el);
     double const current = ElensData_get_current(el);
     double const voltage = ElensData_get_voltage(el);
     double const residual_kick_x = ElensData_get_residual_kick_x(el);
@@ -56,6 +58,8 @@ void Elens_track_local_particle(ElensData el, LocalParticle* part0){
 
         double x      = LocalParticle_get_x(part);
         double y      = LocalParticle_get_y(part);
+        double xc     = x - offset_x;
+        double yc     = y - offset_y;
 
         // delta
         // double delta  = LocalParticle_get_delta(part);
@@ -75,7 +79,7 @@ void Elens_track_local_particle(ElensData el, LocalParticle* part0){
 
 
         // transverse radius
-        double r      = sqrt(x*x + y*y);
+        double r      = sqrt(xc*xc + yc*yc);
 
         double rvv    = LocalParticle_get_rvv(part);
         double beta0  = LocalParticle_get_beta0(part);
@@ -159,8 +163,8 @@ void Elens_track_local_particle(ElensData el, LocalParticle* part0){
         if ( r > r1 )
         {
           theta_pxpy = (-1)*frr*theta_max*(outer_radius/r)*(1/(rpp*chi));
-          dpx        = x*theta_pxpy/r;
-          dpy        = y*theta_pxpy/r;
+          dpx        = xc*theta_pxpy/r;
+          dpy        = yc*theta_pxpy/r;
         }
         else
         {
@@ -185,9 +189,14 @@ void Elens_track_local_particle(ElensData el, LocalParticle* part0){
                 coeff_num += 1;
               }
             }
-            
-            dpx *= -1 / (beta_p * C_LIGHT * Brho0 * chebyshev_reference_radius);
-            dpy *= -1 / (beta_p * C_LIGHT * Brho0 * chebyshev_reference_radius);
+            if (e_beam_dir < 0){
+              dpx *= -(1+beta_e*beta_p) / (beta_p * C_LIGHT * Brho0 * chebyshev_reference_radius);
+              dpy *= -(1+beta_e*beta_p) / (beta_p * C_LIGHT * Brho0 * chebyshev_reference_radius);
+            }
+            else {
+              dpx *= -(1-beta_e*beta_p) / (beta_p * C_LIGHT * Brho0 * chebyshev_reference_radius);
+              dpy *= -(1-beta_e*beta_p) / (beta_p * C_LIGHT * Brho0 * chebyshev_reference_radius);
+            }
           }
         }
 

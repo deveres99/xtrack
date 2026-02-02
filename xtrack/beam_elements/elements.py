@@ -1115,6 +1115,10 @@ class Elens(BeamElement):
         Inner radius of the electron lens in meters. Default is ``0``.
     outer_radius : float
         Outer radius of the electron lens in meters. Default is ``0``.
+    offset_x : float
+        E-beam offset in the horizontal direction, Default is ``0``.
+    offset_y : float
+        E-beam offset in the vertical direction, Default is ``0``.
     current : float
         Current of the electron lens in Ampere. Default is ``0``.
     elens_length : float
@@ -1152,6 +1156,8 @@ class Elens(BeamElement):
         'current': xo.Float64,
         'inner_radius': xo.Field(xo.Float64, default=0.),
         'outer_radius': xo.Field(xo.Float64, default=0.),
+        'offset_x': xo.Field(xo.Float64, default=0.),
+        'offset_y': xo.Field(xo.Float64, default=0.),
         'elens_length': xo.Field(xo.Float64, default=0.),
         'voltage': xo.Field(xo.Float64, default=0.),
         'residual_kick_x': xo.Field(xo.Float64, default=0.),
