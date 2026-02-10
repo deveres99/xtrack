@@ -10,7 +10,7 @@
 
 GPUFUN
 float T_Chebyshev(int n, float u){
-  return (n * acos(u));
+  return cos(n * acos(u));
 }
 
 GPUFUN
